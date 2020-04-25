@@ -1,0 +1,51 @@
+---
+title: "regression"
+author: "Paddy Adams"
+date: "24/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(gt)
+
+demographics <- readRDS("demographics.RDS")
+
+```
+
+```{r}
+
+
+# just a brief view 
+
+cor <- demographics %>% 
+  summarise(cor = cor(pct_leave, Unemployed))
+
+cor
+
+```
+
+```{r, gt table}
+
+model <- demographics %>% 
+  lm(pct_leave ~ over50, .) %>% 
+  tidy(conf.int = T) %>% 
+  select(-c(std.error, p.value, statistic)) %>% 
+  mutate(term = c("Intercept", "Over 50")) %>% 
+  gt() %>% 
+  tab_header(title = "Effect of the Variable on Leave vote") %>% 
+  cols_label(term = "",
+             estimate = "Coefficient",
+             conf.low = "5th percentile",
+             conf.high = "95th percentile") %>%
+  tab_spanner(label = "Confidence Interval",
+              columns = 3:4) %>% 
+  fmt_number(., columns = vars("estimate", "conf.low", "conf.high"), decimals = 2)
+  
+model
+
+```
+
+

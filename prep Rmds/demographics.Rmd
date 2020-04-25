@@ -1,0 +1,181 @@
+---
+title: "final proj data"
+author: "Paddy Adams"
+date: "20/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(sf)
+library(rgdal)
+library(broom)
+
+
+```
+
+```{r, wrangling}
+
+# using janiotr on all to remove empty rows and columns from xcell sheets
+        ref_data <- read_csv("data/EU-referendum-result-data.csv") %>% 
+            clean_names() %>% 
+            remove_empty() %>% 
+            select(area_code, pct_leave)
+        
+        # unemployment by household
+        
+        un_emp_percent <- read_excel("data/unemployment - number.xls", sheet = 3, skip = 10) %>% 
+            clean_names() %>% 
+            remove_empty()
+        
+        colnames(un_emp_percent)[7] <- "unemployed_no_kids"  
+        colnames(un_emp_percent)[6] <- "unemployed_kids" 
+        
+        un_emp_percent <- un_emp_percent %>% 
+            select(area_code, unemployed_kids, unemployed_no_kids)
+        
+        # employment by individual
+        
+        employment <- read_excel("data/Employment_pct.xls", skip = 11) %>% 
+            clean_names() %>% 
+            remove_empty() %>% 
+            select(area_code, economically_active_unemployed1)
+        
+        colnames(employment)[2] <- "Unemployed"
+        
+# AGE
+        
+        age <- read_excel("data/age_data.xls", skip = 11) %>% 
+            clean_names() %>% 
+            remove_empty()
+        colnames(age)[1] <- "area_code"
+        colnames(age)[5] <- "total"
+        
+        # this then creates new columns that give the percentage values of the total, giving plottable data
+        # first making all relevant columns dbls, then creating new _pct columns using '.' / total
+        
+        i <- 6:22
+        age[i] <- lapply(age[i], as.numeric)
+        
+        age <- age %>%
+            mutate_at(.funs = funs(pct = ./total), .vars = 6:22)
+        
+        # group data to provide an 'over 50' column thats the sum of relevant percentages. Also
+        # scaled up to give an actual %. under 50 and 30 also done. 
+        
+        age <- age %>% 
+            select(area_code, ends_with("pct")) %>% 
+            mutate(over50 = (persons_17_pct + persons_18_pct + persons_19_pct + persons_20_pct + 
+                                         persons_21_pct + persons_22_pct + persons_23_pct) * 100) %>% 
+            mutate(under50 = (persons_10_pct + persons_11_pct + persons_12_pct + persons_13_pct + 
+                                          persons_14_pct + persons_15_pct + persons_16_pct) * 100) %>% 
+            mutate(under_30_pct = (persons_10_pct + persons_11_pct + persons_12_pct) * 100) %>% 
+  
+            remove_empty()
+        
+        
+# DENSITY
+        
+        density <- read_excel("data/Population density.xls", sheet = 2, skip = 11) %>% 
+            clean_names() %>% 
+            remove_empty() %>% 
+            select(area_code, density_person_per_hectare)
+        
+        colnames(density)[2] <- "Density"
+        
+# EDUCATION 
+        
+        ed <- read_excel("data/Education.xls", sheet = 3, skip = 10) %>% 
+            clean_names() %>% 
+            remove_empty()
+        
+        colnames(ed)[6] <- "none"
+        colnames(ed)[8] <- "gcse"
+        colnames(ed)[10] <- "a_level"
+        colnames(ed)[11] <- "uni"
+        
+        ed <- ed %>% 
+            mutate(Education = a_level + uni)
+        
+        ed <- ed %>% 
+            select(area_code, Education)
+        
+        
+# JOIN
+        
+        demographics <- ref_data %>% 
+            inner_join(age, by = "area_code") %>% 
+            inner_join(employment, by = "area_code") %>% 
+            inner_join(ed, by = "area_code") %>% 
+            #inner_join(un_emp_percent, by = "area_code") %>% 
+            inner_join(density, by = "area_code") 
+        
+
+saveRDS(demographics, "demographics.RDS")
+
+```
+
+```{r, anti join for interest}
+
+ref <- read.csv("data/EU-referendum-result-data.csv") %>% 
+  clean_names() %>% 
+  remove_empty()
+
+e <- read_excel("data/Education.xls", sheet = 3, skip = 10) %>% 
+            clean_names() %>% 
+            remove_empty()
+        
+        colnames(e)[6] <- "none"
+        colnames(e)[8] <- "gcse"
+        colnames(e)[10] <- "a_level"
+        colnames(e)[11] <- "uni"
+        
+e <- e %>% 
+    mutate(Education = a_level + uni)
+
+x <- e %>% 
+  anti_join(ref, by = "area_code")
+
+
+```
+
+```{r, age pt2 the failed experiment}
+
+age2 <- read_excel("data/age_data.xls", skip = 11) %>% 
+            clean_names() %>% 
+            remove_empty()
+        colnames(age2)[1] <- "area_code"
+        colnames(age2)[5] <- "total"
+        
+        # this then creates new columns that give the percentage values of the total, giving plottable data
+        # first making all relevant columns dbls, then creating new _pct columns using '.' / total
+        
+        i <- 6:22
+        age2[i] <- lapply(age2[i], as.numeric)
+        
+        age2 <- age2 %>%
+            mutate_at(.funs = funs(pct = ./total), .vars = 6:22)
+        
+        # pivot to try and make it possible to plot age group 
+        
+age2.1 <- age2 %>% 
+  inner_join(ref, by = "area_code") %>% 
+  select(area_code, contains("_pct"), pct_leave) %>% 
+  pivot_longer(-c(area_code, pct_leave), names_to = "group", values_to = "age") %>% 
+  group_by(group, area_code)
+  
+
+ggplot(age2.1, aes(age, pct_leave, color = area_code)) + geom_smooth(se = F) + theme(legend = F)
+
+```
+
+
+
+
+
+
+
+

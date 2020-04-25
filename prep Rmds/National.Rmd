@@ -1,0 +1,143 @@
+---
+title: "National"
+author: "Paddy Adams"
+date: "24/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(sf)
+library(rgdal)
+library(broom)
+library(jsonlite)
+library(httr)
+library(leaflet)
+library(spdplyr)
+library(sf)
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+ref <- read.csv("~/gov1005-Project/data/EU-referendum-result-data.csv") %>% 
+  clean_names() %>% 
+  remove_empty()
+
+# EMPLOYMENT
+
+employment <- read_excel("~/gov1005-Project/data/Employment_pct.xls", skip = 11) %>% 
+  clean_names() %>% 
+  remove_empty() %>%
+  unite(., col = "area", 2:4, sep = "", remove = TRUE, na.rm = TRUE)
+  
+colnames(employment)[7] <- "Unemployed"
+
+join <- ref %>% 
+  inner_join(employment, by = "area") %>% 
+  select(area, pct_leave, Unemployed)
+
+        
+# AGE
+        
+age <- read_excel("~/gov1005-Project/data/age_data.xls", skip = 11) %>% 
+    clean_names() %>% 
+    remove_empty() %>% 
+    unite(., col = "area", 2:4, sep = "", remove = TRUE, na.rm = TRUE)
+
+colnames(age)[1] <- "area_code"
+colnames(age)[3] <- "total"
+
+i <- 3:19
+age[i] <- lapply(age[i], as.numeric)
+        
+age <- age %>%
+    mutate_at(.funs = funs(pct = ./total), .vars = 4:19)
+        
+age <- age %>% 
+    mutate(over50 = (persons_17_pct + persons_18_pct + persons_19_pct + persons_20_pct + 
+                              persons_21_pct + persons_22_pct) * 100) %>% 
+    mutate(under50 = (persons_10_pct + persons_11_pct + persons_12_pct + persons_13_pct + 
+                              persons_14_pct + persons_15_pct + persons_16_pct) * 100) %>% 
+    select(area_code, area, over50, under50) %>% 
+    remove_empty()
+
+join <- join %>% 
+  inner_join(age, by = "area")  
+        
+        
+# DENSITY
+        
+density <- read_excel("~/gov1005-Project/data/Population density.xls", sheet = 2, skip = 11) %>% 
+    clean_names() %>% 
+    remove_empty() %>% 
+    unite(., col = "area", 2:4, sep = "", remove = TRUE, na.rm = TRUE) %>% 
+    select(area, density_person_per_hectare)
+        
+colnames(density)[2] <- "Density"
+
+join <- join %>% 
+  inner_join(density, by = "area")
+        
+# EDUCATION 
+        
+ed <- read_excel("~/gov1005-Project/data/Education.xls", sheet = 3, skip = 10) %>% 
+    clean_names() %>% 
+    remove_empty() %>% 
+    unite(., col = "area", 2:4, sep = "", remove = TRUE, na.rm = TRUE)    
+    
+    
+colnames(ed)[4] <- "none"
+colnames(ed)[6] <- "gcse"
+colnames(ed)[8] <- "a_level"
+colnames(ed)[9] <- "uni"
+        
+ed <- ed %>% 
+  mutate(Education = a_level + uni) %>% 
+  select(area, Education)
+
+ref_join <- join %>% 
+  inner_join(ed, by = "area")
+
+
+        
+```
+
+
+```{r, cache=TRUE}
+
+## read in shapefile using sf package. dsn is location of file and layer is name of the .shp file
+## inside folder containing shapefiles
+ukshp <- sf::st_read(dsn = "/Users/daddyadams/gov1005-Project/data/shapefiles",
+                         layer = "Local_Authority_Districts_December_2017_Full_Clipped_Boundaries_in_Great_Britain")
+
+
+## Merge shape file with referendum data
+ukMap <- ukshp %>%
+  inner_join(ref_join, by = c("lad17cd" = "area_code"))
+
+## Set color palette, other options available
+pal <- colorNumeric("viridis", NULL)
+
+
+## Plot UK referendum data
+leaflet(ukMap) %>%
+  addTiles() %>%
+  addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+              fillColor = ~ pal(Density)) %>%
+  addLegend(pal = pal, values = ~ Density, opacity = 1.0)
+
+```
+
+
+
