@@ -81,12 +81,14 @@ colnames(density)[2] <- "Density"
 ed <- read_excel("~/gov1005-Project/data/Education.xls", sheet = 3, skip = 10) %>% 
     clean_names() %>% 
     remove_empty()
-        
+
+# rename for ease of use 
 colnames(ed)[6] <- "none"
 colnames(ed)[8] <- "gcse"
 colnames(ed)[10] <- "a_level"
 colnames(ed)[11] <- "uni"
-        
+
+# join to create a higher education stat 
 ed <- ed %>% 
   mutate(Education = a_level + uni)
         
@@ -94,23 +96,6 @@ ed <- ed %>%
   select(area_code, Education)
 
 
-# 2017 general election 
-
-
-ge17 <- read_csv("~/gov1005-Project/data/ge2017.csv") %>% 
-  clean_names() 
-
-colnames(ge17)[2] <- "area_code"
-
-i <- 16:19
-ge17[i] <- lapply(ge17[i], as.numeric)
-        
-ge17 <- ge17 %>%
-  mutate_at(.funs = funs(pct = ./valid_votes), .vars = 16:19)
-
-ge17_pct <- ge17 %>% 
-  select(area_code, con_pct, lab_pct, ld_pct, ukip_pct)
-        
 # JOIN
         
 demographics <- ref_data %>% 
@@ -122,6 +107,7 @@ demographics <- ref_data %>%
         
 
 #saveRDS(demographics, "demographics.RDS")
+# save commented out so it didn't duplicate file
 
 ```
 
@@ -160,8 +146,8 @@ age2 <- read_excel("data/age_data.xls", skip = 11) %>%
         colnames(age2)[1] <- "area_code"
         colnames(age2)[5] <- "total"
         
-        # this then creates new columns that give the percentage values of the total, giving plottable data
-        # first making all relevant columns dbls, then creating new _pct columns using '.' / total
+# this then creates new columns that give the percentage values of the total, giving plottable data
+# first making all relevant columns dbls, then creating new _pct columns using '.' / total
         
         i <- 6:22
         age2[i] <- lapply(age2[i], as.numeric)
@@ -169,7 +155,7 @@ age2 <- read_excel("data/age_data.xls", skip = 11) %>%
         age2 <- age2 %>%
             mutate_at(.funs = funs(pct = ./total), .vars = 6:22)
         
-        # pivot to try and make it possible to plot age group 
+# pivot to try and make it possible to plot age group 
         
 age2.1 <- age2 %>% 
   inner_join(ref, by = "area_code") %>% 
@@ -186,6 +172,7 @@ ggplot(age2.1, aes(age, pct_leave, color = area_code)) + geom_smooth(se = F) + t
 
 # 2017 general election - if added to deomgraphics
 # it reduces the observations by half so have it seperate
+# but would have been nice to explore party voitng preference 
 
 
 ge17 <- read_csv("~/gov1005-Project/data/ge2017.csv") %>% 

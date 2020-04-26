@@ -34,7 +34,7 @@ library(proj4)
 # not just area_code
 
 # I have made an 'area' column in each with area name but 
-# it may bot be used
+# it may not be used
 
 ref <- read.csv("~/gov1005-Project/data/EU-referendum-result-data.csv") %>% 
   clean_names() %>% 
@@ -124,12 +124,6 @@ national_ref_join <- join %>%
         
 ```
 
-```{r}
-
-anti <- ref_join %>% 
-  anti_join(ref, by = "area_code")
-
-```
 
 
 ```{r, general election}
@@ -155,10 +149,11 @@ join_ge <- ref_join %>%
 ```
 
 
-```{r, cache=TRUE}
+```{r, map, cache=TRUE}
 
-## read in shapefile using sf package. dsn is location of file and layer is name of the .shp file
-## inside folder containing shapefiles
+# this is to plot points over uk  
+# read in shapefile using sf package. dsn is location of file and layer is name of the .shp file
+# inside folder containing shapefiles
 ukshp <- sf::st_read(dsn = "/Users/daddyadams/gov1005-Project/data/shapefiles",
                          layer = "Local_Authority_Districts_December_2017_Full_Clipped_Boundaries_in_Great_Britain")
 
@@ -167,20 +162,20 @@ ukshp <-sf::st_transform(ukshp, crs = "+init=epsg:4326")
 # set joining levels the same
 ukshp$lad17cd <- as.character(ukshp$lad17cd)
 
-## Merge shape file with referendum data
+# merge shape file with referendum data
 ukMap <- ukshp %>%
   left_join(national_ref_join, by = c("lad17cd" = "area_code"))
 
 # write rds file, but comment out so not everytime I run chunk
 # saveRDS(ukMap, "ukMap.RDS") 
 
-## Set color palette, other options available
+# Set color palette, other options available
 pal <- colorNumeric("viridis", NULL)
 
-# set so tiles are labelled 
+# set so tiles are labelled when hovering over map
 labels <- paste(ukMap$area, ukMap$Education, sep = ":  ")
 
-## Plot UK referendum data
+# plot 
 leaflet(ukMap) %>%
   addTiles() %>%
   addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,

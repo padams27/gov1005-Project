@@ -13,6 +13,10 @@ library(gt)
 
 demographics <- readRDS("demographics.RDS")
 
+# when I did this it was easier to do it in 
+# a seperate rmd file to help me organise 
+# my thoughts
+
 ```
 
 ```{r}
@@ -28,6 +32,10 @@ cor
 ```
 
 ```{r, gt table}
+
+# selected coefficients and convidence intervals only 
+# and formatted to have 2 decimals. regression just like 
+# as done in class
 
 model <- demographics %>% 
   lm(pct_leave ~ over50, .) %>% 
