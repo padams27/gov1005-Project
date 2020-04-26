@@ -12,11 +12,20 @@ library(tidyverse)
 library(shinythemes)
 library(gt)
 library(broom)
+library(readxl)
+library(janitor)
+library(sf)
+library(rgdal)
+library(jsonlite)
+library(httr)
+library(leaflet)
+library(spdplyr)
+
 
 
 
 demographics <- readRDS("demographics.RDS")
-
+ukMap <- readRDS("ukMap.RDS")
 
 ui <- navbarPage("Analysing Brexit",
                  theme = shinytheme("flatly"),
@@ -113,13 +122,27 @@ ui <- navbarPage("Analysing Brexit",
                  
                 tabPanel("National Values",
                          tabPanel("UK Plots",
-                                   
-                                   h4("Put screenshots of spatial data here"),
-                                   
-                                   ),
-                         
-                         
-                         ),
+                                 h4("Put screenshots of spatial data here"),
+                                 sidebarPanel(
+                                     h4("About"),
+                                     p("These plots show a brief overview of the relationships between 
+                                the vote leave percentage (by local authority) and other regional
+                                data points from the 2011 national census."),
+                                     
+                                     helpText("Choose a varibale to view corellation plot"),
+                                     selectInput(inputId = "map",
+                                                 label = "Variable:",
+                                                 choices = c("Age: Over 50" = "over50",
+                                                             "Age: Under 50" = "under50",
+                                                             "Population Density" = "Density",
+                                                             "Education",
+                                                             "Unemployment" = "Unemployed"),
+                                                 selected = "Age: Over 50")),
+                                         
+                                mainPanel(
+                                    leafletOutput("ukMap")
+
+                            ))),
                  
             #### FOOTNOTES
                  
@@ -296,7 +319,72 @@ server <- function(input, output, session) {
         }
     })  
     
-    
+    output$ukMap({
+        
+        if(input$map == "over50"){
+            
+            ## Set color palette, other options available
+            pal <- colorNumeric("viridis", NULL)
+            
+            #set so tiles are labelled 
+            labels <- paste(ukMap$area, ukMap$over50, sep = ":  ")
+            
+            ## Plot UK referendum data
+            leaflet(ukMap) %>%
+                addTiles() %>%
+                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+                            label = labels, fillColor = ~ pal(over50)) %>%
+                addLegend(pal = pal, values = ~ over50, opacity = 1.0)
+        }
+        else if(input$map == "under50"){
+            
+            pal <- colorNumeric("viridis", NULL)
+ 
+            labels <- paste(ukMap$area, ukMap$under50, sep = ":  ")
+
+            leaflet(ukMap) %>%
+                addTiles() %>%
+                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+                            label = labels, fillColor = ~ pal(under50)) %>%
+                addLegend(pal = pal, values = ~ under50, opacity = 1.0)
+        }
+        else if(input$map == "Education"){
+            
+            pal <- colorNumeric("viridis", NULL)
+ 
+            labels <- paste(ukMap$area, ukMap$Education, sep = ":  ")
+            
+            leaflet(ukMap) %>%
+                addTiles() %>%
+                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+                            label = labels, fillColor = ~ pal(Education)) %>%
+                addLegend(pal = pal, values = ~ Education, opacity = 1.0)            
+        }
+        else if(input$map == "Density"){
+            
+            pal <- colorNumeric("viridis", NULL)
+            
+            labels <- paste(ukMap$area, ukMap$Density, sep = ":  ")
+            
+            leaflet(ukMap) %>%
+                addTiles() %>%
+                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+                            label = labels, fillColor = ~ pal(Density)) %>%
+                addLegend(pal = pal, values = ~ Density, opacity = 1.0) 
+        }
+        else{input$Unemployed
+
+            pal <- colorNumeric("viridis", NULL)
+        
+            labels <- paste(ukMap$area, ukMap$Density, sep = ":  ")
+            
+            leaflet(ukMap) %>%
+                addTiles() %>%
+                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+                            label = labels, fillColor = ~ pal(Unemployed)) %>%
+                addLegend(pal = pal, values = ~ Unemployed, opacity = 1.0)             
+            }
+    })
     
 }
 
