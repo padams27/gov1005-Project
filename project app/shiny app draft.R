@@ -22,7 +22,7 @@ library(leaflet)
 library(spdplyr)
 
 
-
+# load in all relevant libraries and the two RDS files needed
 
 demographics <- readRDS("demographics.RDS")
 ukMap <- readRDS("ukMap.RDS")
@@ -30,7 +30,7 @@ ukMap <- readRDS("ukMap.RDS")
 ui <- navbarPage("Analysing Brexit",
                  theme = shinytheme("flatly"),
                  
-                 #### ABOUT
+        # ABOUT tab introducing project
                  
                  tabPanel("About",
                           
@@ -39,16 +39,9 @@ ui <- navbarPage("Analysing Brexit",
                           h2("How do the 2016 referendum results correlate with other national statistics?", align = "center"),
                           br(),
                           div(),
-                          
-                          
                           br(),
-                          
                           fluidRow(column(2), column(8,
-                                                     
                                         h4(strong("Introduction")),          
-                                                     
-                                        #text to introduce project
-                                                     
                                         p("The aim of my project is to explore the relationship between the 2016 UK 'Brexit' referendum data and other data points 
                                                         relating the region where the votes were cast. The point of this is to try and explore any correlation
                                                         between the regional vote leave percentage, and a selection of data points taken from the 2011 national 
@@ -61,13 +54,10 @@ ui <- navbarPage("Analysing Brexit",
                                                         p("By analysing the data I have I hope to see if there are significant correlations and whether or not these 
                                                         stereotypes have a strong basis."),
                                                      
-                                        br(),
-                                                     
                                                      
                           ))),
                  
-                 
-             #### DATA
+        # PLOT tab with corellations and regression analysis
              
                  tabPanel("Data Analysis",
                           tabPanel("Graphics",
@@ -91,6 +81,9 @@ ui <- navbarPage("Analysing Brexit",
                                           selected = "Age: Over 50")),
                                    
                             mainPanel(
+                                
+        # main panel has two subset tabs for plot or gt tables
+                                
                                 tabsetPanel(id = "tabsMain",
                                             tabPanel("Plots",
                                                      br(),
@@ -119,44 +112,45 @@ ui <- navbarPage("Analysing Brexit",
                                                              on the slope of the regression from the intercept.")),
                                 
                           ))))),
-                 
-                tabPanel("National Values",
+              
+        # MAP visuals using leaflet    
+                
+                tabPanel("UK Visualisation",
                          tabPanel("UK Plots",
-                                 h4("Put screenshots of spatial data here"),
+                                 br(),
                                  sidebarPanel(
                                      h4("About"),
-                                     p("These plots show a brief overview of the relationships between 
-                                the vote leave percentage (by local authority) and other regional
-                                data points from the 2011 national census."),
+                                     p("This overlayed map plot helps visualise how the variables are distributed around the UK."),
                                      
-                                     helpText("Choose a varibale to view corellation plot"),
+                                     helpText("Choose a varibale to view over the map"),
                                      selectInput(inputId = "map",
                                                  label = "Variable:",
-                                                 choices = c("Age: Over 50" = "over50",
+                                                 choices = c("Percent Leave" = "pct_leave",
+                                                             "Age: Over 50" = "over50",
                                                              "Age: Under 50" = "under50",
                                                              "Population Density" = "Density",
                                                              "Education",
                                                              "Unemployment" = "Unemployed"),
-                                                 selected = "Age: Over 50")),
+                                                 selected = "Percent Leave")),
                                          
                                 mainPanel(
+                                    p("Disclaimer: This takes a few seconds to load."),
+                                    br(),
                                     leafletOutput("ukMap")
 
                             ))),
                  
-            #### FOOTNOTES
-                 
-                 
-                 #tab to explain where I got my data 
-                 
+        # FOOTNOTES and references 
+
                  tabPanel("Footnotes",
                           
                           
                           h4("References"),
                           br(),
                           
-                          p(paste("I obtained my data from the UK goverment and their Brexit and 2011 national census data. 
-                            Both are online and for public use:"), a(href = "https://www.ons.gov.uk/", "Office for National Statistics")),
+                          p(paste("I obtained all my data from the UK goverment and their Brexit and 2011 national census data. The 
+                          shapefiles I used for my mapping data are also from the same source and they are all free and easy to 
+                          download:"), a(href = "https://www.ons.gov.uk/", "Office for National Statistics")),
                           br(),
                           h4("Data variables"),
                           
@@ -179,7 +173,7 @@ ui <- navbarPage("Analysing Brexit",
 
 server <- function(input, output, session) {
     
-    
+    # load in image for the fist page     
     
     output$brexit <- renderImage({
         
@@ -190,9 +184,10 @@ server <- function(input, output, session) {
         deleteFile = FALSE
     )
 
-    
-    #### DATA
-    
+
+    # if / if else loop takes the ui input and selects relevant columns to take values from 
+    # allowing for the use of a drop down selection. by creating these variables I can then
+    # use them further down
     
     output$demographics <- renderPlot({
         
@@ -223,6 +218,8 @@ server <- function(input, output, session) {
                 demographic_title <- "Proportion of Population Unemployed and Percent Leave"
             }
         
+        # ggplot using my created variables
+        
         ggplot(demographics, aes(x_value, pct_leave)) +
             geom_point(color = "lightblue") +
             geom_smooth(se = F, color = "darkgreen") +
@@ -235,9 +232,13 @@ server <- function(input, output, session) {
         
     })
 
+    # for the gt regression tables I wanted more flexibilty for changing 
+    # titles etc so each plot is in its own if clasue to make changes 
+    # between them
+    
     output$model <- render_gt({
         
-        if(input$demographic == "over50") {
+     if(input$demographic == "over50") {
             demographics %>% 
                 lm(pct_leave ~ over50, .) %>% 
                 tidy(conf.int = T) %>% 
@@ -319,17 +320,22 @@ server <- function(input, output, session) {
         }
     })  
     
-    output$ukMap({
+    # the map visual is done similar to the above gt with an if
+    # for each variable. it seemed easier and less stressful even 
+    # if it may be more lines of code. I chose to put the full leaflet 
+    # map in instead of .png even though it takes a while to load because 
+    # this way you can see individual stats for each region by 
+    # scrolling over
+    
+    output$ukMap <- renderLeaflet({
+        
         
         if(input$map == "over50"){
             
-            ## Set color palette, other options available
             pal <- colorNumeric("viridis", NULL)
             
-            #set so tiles are labelled 
             labels <- paste(ukMap$area, ukMap$over50, sep = ":  ")
-            
-            ## Plot UK referendum data
+
             leaflet(ukMap) %>%
                 addTiles() %>%
                 addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
@@ -371,6 +377,18 @@ server <- function(input, output, session) {
                 addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
                             label = labels, fillColor = ~ pal(Density)) %>%
                 addLegend(pal = pal, values = ~ Density, opacity = 1.0) 
+        }
+        else if(input$map == "pct_leave"){
+            
+            pal <- colorNumeric("viridis", NULL)
+            
+            labels <- paste(ukMap$area, ukMap$pct_leave, sep = ":  ")
+            
+            leaflet(ukMap) %>%
+                addTiles() %>%
+                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+                            label = labels, fillColor = ~ pal(pct_leave)) %>%
+                addLegend(pal = pal, values = ~ pct_leave, opacity = 1.0) 
         }
         else{input$Unemployed
 
