@@ -145,18 +145,21 @@ ui <- navbarPage("Analysing Brexit",
                                                  choices = c("Percent Leave" = "pct_leave",
                                                              "Age: Over 50" = "over50",
                                                              "Age: Under 50" = "under50",
-                                                             "Population Density" = "Density",
+                                                             #"Population Density" = "Density",
                                                              "Education",
                                                              "Unemployment" = "Unemployed"),
                                                  selected = "Percent Leave")),
                                          
                                 mainPanel(
-                                    p("Disclaimer: This takes a few seconds to load."),
+                                    #p("Disclaimer: This takes a few seconds to load."),
                                     br(),
-                                    leafletOutput("ukMap")
+                                    imageOutput("ukMap")
 
                             ))),
                  
+        # I have commented out the two lines above because they arent needed since I
+        # got rid of leaflet output
+        
         # FOOTNOTES and references 
 
                  tabPanel("Footnotes",
@@ -193,7 +196,7 @@ server <- function(input, output, session) {
     
     output$brexit <- renderImage({
         
-        list(src = "brexit.jpg",
+        list(src = "graphics/brexit.jpg",
              height = 300,
              width = 700,
              style = "display: block; margin-left: auto; margin-right: auto;")},
@@ -349,82 +352,129 @@ server <- function(input, output, session) {
     # this way you can see individual stats for each region by 
     # scrolling over
     
-    output$ukMap <- renderLeaflet({
-        
-        
-        if(input$map == "over50"){
-            
-            pal <- colorNumeric("viridis", NULL)
-            
-            labels <- paste(ukMap$area, ukMap$over50, sep = ":  ")
-
-            leaflet(ukMap) %>%
-                addTiles() %>%
-                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
-                            label = labels, fillColor = ~ pal(over50)) %>%
-                addLegend(pal = pal, values = ~ over50, opacity = 1.0)
-        }
-        else if(input$map == "under50"){
-            
-            pal <- colorNumeric("viridis", NULL)
+    # for some reason when I publish the app this leaflet plot crashes 
+    # the app so I'm putting in screenshots instead
+    
+#    output$ukMap <- renderLeaflet({
+#        
+#        
+#        if(input$map == "over50"){
+#            
+#            pal <- colorNumeric("viridis", NULL)
+#           
+#            labels <- paste(ukMap$area, ukMap$over50, sep = ":  ")
+#
+#            leaflet(ukMap) %>%
+#                addTiles() %>%
+#                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+#                            label = labels, fillColor = ~ pal(over50)) %>%
+#                addLegend(pal = pal, values = ~ over50, opacity = 1.0)
+#        }
+#        else if(input$map == "under50"){
+#            
+#            pal <- colorNumeric("viridis", NULL)
+# 
+#            labels <- paste(ukMap$area, ukMap$under50, sep = ":  ")
+#
+#            leaflet(ukMap) %>%
+#                addTiles() %>%
+#                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+#                            label = labels, fillColor = ~ pal(under50)) %>%
+#                addLegend(pal = pal, values = ~ under50, opacity = 1.0)
+#        }
+#        else if(input$map == "Education"){
+#            
+#            pal <- colorNumeric("viridis", NULL)
+# 
+#            labels <- paste(ukMap$area, ukMap$Education, sep = ":  ")
+#            
+#            leaflet(ukMap) %>%
+#                addTiles() %>%
+#                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+#                            label = labels, fillColor = ~ pal(Education)) %>%
+#                addLegend(pal = pal, values = ~ Education, opacity = 1.0)            
+#        }
+#        else if(input$map == "Density"){
+#            
+#            pal <- colorNumeric("viridis", NULL)
+#            
+#            labels <- paste(ukMap$area, ukMap$Density, sep = ":  ")
+#            
+#            leaflet(ukMap) %>%
+#                addTiles() %>%
+#                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+#                            label = labels, fillColor = ~ pal(Density)) %>%
+#                addLegend(pal = pal, values = ~ Density, opacity = 1.0) 
+#        }
+#        else if(input$map == "pct_leave"){
+#            
+#            pal <- colorNumeric("viridis", NULL)
+#            
+#            labels <- paste(ukMap$area, ukMap$pct_leave, sep = ":  ")
+#            
+#            leaflet(ukMap) %>%
+#                addTiles() %>%
+#                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+#                            label = labels, fillColor = ~ pal(pct_leave)) %>%
+#                addLegend(pal = pal, values = ~ pct_leave, opacity = 1.0) 
+#        }
+#        else{input$Unemployed
+#
+#            pal <- colorNumeric("viridis", NULL)
+#       
+#            labels <- paste(ukMap$area, ukMap$Density, sep = ":  ")
+#            
+#            leaflet(ukMap) %>%
+#                addTiles() %>%
+#                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
+#                            label = labels, fillColor = ~ pal(Unemployed)) %>%
+#                addLegend(pal = pal, values = ~ Unemployed, opacity = 1.0)             
+#            }
+#    })
  
-            labels <- paste(ukMap$area, ukMap$under50, sep = ":  ")
-
-            leaflet(ukMap) %>%
-                addTiles() %>%
-                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
-                            label = labels, fillColor = ~ pal(under50)) %>%
-                addLegend(pal = pal, values = ~ under50, opacity = 1.0)
-        }
-        else if(input$map == "Education"){
-            
-            pal <- colorNumeric("viridis", NULL)
- 
-            labels <- paste(ukMap$area, ukMap$Education, sep = ":  ")
-            
-            leaflet(ukMap) %>%
-                addTiles() %>%
-                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
-                            label = labels, fillColor = ~ pal(Education)) %>%
-                addLegend(pal = pal, values = ~ Education, opacity = 1.0)            
-        }
-        else if(input$map == "Density"){
-            
-            pal <- colorNumeric("viridis", NULL)
-            
-            labels <- paste(ukMap$area, ukMap$Density, sep = ":  ")
-            
-            leaflet(ukMap) %>%
-                addTiles() %>%
-                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
-                            label = labels, fillColor = ~ pal(Density)) %>%
-                addLegend(pal = pal, values = ~ Density, opacity = 1.0) 
-        }
-        else if(input$map == "pct_leave"){
-            
-            pal <- colorNumeric("viridis", NULL)
-            
-            labels <- paste(ukMap$area, ukMap$pct_leave, sep = ":  ")
-            
-            leaflet(ukMap) %>%
-                addTiles() %>%
-                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
-                            label = labels, fillColor = ~ pal(pct_leave)) %>%
-                addLegend(pal = pal, values = ~ pct_leave, opacity = 1.0) 
-        }
-        else{input$Unemployed
-
-            pal <- colorNumeric("viridis", NULL)
+    
+    # map screenshots instead...
+    
+    
+    output$ukMap <- renderImage({
         
-            labels <- paste(ukMap$area, ukMap$Density, sep = ":  ")
-            
-            leaflet(ukMap) %>%
-                addTiles() %>%
-                addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
-                            label = labels, fillColor = ~ pal(Unemployed)) %>%
-                addLegend(pal = pal, values = ~ Unemployed, opacity = 1.0)             
-            }
-    })
+        if(input$map == "over50"){ 
+            list(src = "graphics/over50.png",
+                 height = 500,
+                 width = 700,
+                 style = "display: block; margin-left: auto; margin-right: auto;")
+        }
+        else if(input$map == "under50"){ 
+            list(src = "graphics/under50.png",
+                 height = 500,
+                 width = 700,
+                 style = "display: block; margin-left: auto; margin-right: auto;")
+        }
+        else if(input$map == "Education"){ 
+            list(src = "graphics/education.png",
+                 height = 500,
+                 width = 700,
+                 style = "display: block; margin-left: auto; margin-right: auto;")
+        }
+        else if(input$map == "pct_leave"){ 
+            list(src = "graphics/pct_leave.png",
+                 height = 500,
+                 width = 700,
+                 style = "display: block; margin-left: auto; margin-right: auto;")
+        }
+        else if(input$map == "Unemployed"){ 
+            list(src = "graphics/unemployed.png",
+                 height = 500,
+                 width = 700,
+                 style = "display: block; margin-left: auto; margin-right: auto;")
+        }
+        
+        
+        
+    },    
+         deleteFile = FALSE
+    )
+    
     
 }
 

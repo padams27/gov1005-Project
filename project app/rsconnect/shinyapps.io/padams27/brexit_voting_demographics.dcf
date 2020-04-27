@@ -5,9 +5,8 @@ account: padams27
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2190910
-bundleId: 3069124
+bundleId: 3069263
 url: https://padams27.shinyapps.io/brexit_voting_demographics/
-when: 1587945928.44956
+when: 1587948841.42268
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: shapefiles
