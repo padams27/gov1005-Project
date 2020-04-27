@@ -89,29 +89,46 @@ ui <- navbarPage("Analysing Brexit",
                                                      br(),
                                                      plotOutput("demographics"),
                                                      br(),
-                                                     p("The above plots show the broad correlation between the two data points.
-                                                       There is not necessarily any causation, this is just observational and 
-                                                       open to interpretation."),
                                                      br(),
-                                                     p("Correlation coefficeints:"),
-                                                     br(),
-                                                     p("Over 50:  0.38"),
-                                                     p("Under 50:  -0.46"),
-                                                     p("Population Density:  -0.407"),
-                                                     p("Unemployment"),
-                                                     p("Education:  -0.72"),
                                             ),
                                             tabPanel("Models",
                                                      br(),
                                                      gt_output("model"),
                                                      br(),
                                                      br(),
-                                                     p(paste("The above model shows the regression coefficients for the given single 
-                                                             variable to the vote leave percentage. An increse in one point of the 
-                                                             variable will have an avergae treatment affect of displayed coefficient 
-                                                             on the slope of the regression from the intercept.")),
-                                
-                          ))))),
+                                                     br(),
+                                                     br(),
+                                                     br(),
+                                                     br(),
+                                                     
+                                ))),
+
+            h4(strong("Analysis")),
+            br(),
+            h4("Plots"),
+            p("The graphs show the where each region lies when relating the dependent and 
+              independent variables. This rough guide shows how a change in demographic proportions 
+              of the voting populaiton in that region potentially influences overal percent 
+              leave vote. Although not causational, we can see that some of the stereotypes 
+              around the populaiton voting to leave Europe do have some grounding."),
+            p("There is a strong negative correlation between education and 'vote leave' with a coeffcient
+              of -0.72, suggesting that the more educated an individual is the more likely it is 
+              that they would vote to remain. Being from a rural populaiton seems to also make one 
+              less likely to vote to leave, unlike an increase in age. So far this seems to 
+              fulfill the stereotypes. Unemployment, however, which is more often associated
+              with vote leave doesn't seem to have much correlation at all"),
+        
+            h4("Models"),
+            p("To further analyse this data I have ran some regression models. 
+                The above models show the regression coefficients for the given single 
+                variable to the vote leave percentage. In these models, an increse in one point of the 
+                variable will have an avergae treatment affect of displayed coefficient 
+                on the slope of the regression from the intercept."),
+            p("Again some of the variables have much more obvious relationships with the 
+              vote leave percentage. Overall it would seem that most of the 'stereotypes' 
+              have a reasonable grounding, but not all. The idea that being rural makes you more
+              likely to vote leave seems false and there may be many reasons behind that."),
+        )),
               
         # MAP visuals using leaflet    
                 
@@ -147,13 +164,12 @@ ui <- navbarPage("Analysing Brexit",
                           
                           h4("References"),
                           br(),
-                          
                           p(paste("I obtained all my data from the UK goverment and their Brexit and 2011 national census data. The 
                           shapefiles I used for my mapping data are also from the same source and they are all free and easy to 
                           download:"), a(href = "https://www.ons.gov.uk/", "Office for National Statistics")),
                           br(),
-                          h4("Data variables"),
                           
+                          h4("Data variables"),
                           p("For my Brexit data point I chose the vote leave percentage, as it was the winning vote."),
                           p("Education data is the percentage of the population with two A-levels or higher."),
                           p("Age data points are the proportion either over 50 years old, or between voter age
@@ -164,8 +180,8 @@ ui <- navbarPage("Analysing Brexit",
                           
                           h4("About me"),
                           p(paste("My name is Paddy Adams and I'm a Sophmore student-athlete at Harvard studying 
-                            Integrative Biology. You can access the source code for the project 
-                            at my"), a(href = "https://github.com/padams27/gov1005-Project", "Github.")),
+                            Integrative Biology. My email is padams@college.harvard.edu. You can access the source
+                            code for the project at my"), a(href = "https://github.com/padams27/gov1005-Project", "Github.")),
                           
 
                           ))
@@ -196,26 +212,31 @@ server <- function(input, output, session) {
                 x_value <- demographics$over50
                 x_lab <- "Population Over 50"
                 demographic_title <- "Proportion of Population Over 50 and Percent Leave"
+                cor <- "Correlation coefficient: 0.38"
             } 
             else if(input$demographic == "under50") {
                 x_value <- demographics$under50
                 x_lab <- "Population Under 50"
                 demographic_title <- "Proportion of Population Under 50 and Percent Leave"
+                cor <- "Correlation coefficient: -0.46"
             } 
             else if(input$demographic == "Education") {
                 x_value <- demographics$Education
                 x_lab <- "Higher Education"
                 demographic_title <- "Proportion of Regional Population With A-Levels or Above and Percent Leave"
+                cor <- "Correlation coefficient: -0.72"
             }
             else if(input$demographic == "Density") {
                 x_value <- demographics$Density
                 x_lab <- "Density (Persons per Hectare)"
                 demographic_title <- "Population Density and Percent Leave"
+                cor <- "Correlation coefficient: -0.407"
             }
             else{
                 x_value <- demographics$Unemployed
                 x_lab <- "Unemployment"
                 demographic_title <- "Proportion of Population Unemployed and Percent Leave"
+                cor <- "Correlation coefficient: 0.087"
             }
         
         # ggplot using my created variables
@@ -227,7 +248,8 @@ server <- function(input, output, session) {
             scale_y_continuous(labels = function(y) paste0(y, "%")) +
             labs(y = "Percentage vote leave",
                  x = x_lab,
-                 title = demographic_title) +
+                 title = demographic_title,
+                 subtitle = cor) +
             theme_classic()
         
     })

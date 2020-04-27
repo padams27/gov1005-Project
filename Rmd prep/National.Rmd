@@ -167,7 +167,7 @@ ukMap <- ukshp %>%
   left_join(national_ref_join, by = c("lad17cd" = "area_code"))
 
 # write rds file, but comment out so not everytime I run chunk
-# saveRDS(ukMap, "ukMap.RDS") 
+#saveRDS(ukMap, "ukMap1.RDS") 
 
 # Set color palette, other options available
 pal <- colorNumeric("viridis", NULL)
