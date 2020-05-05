@@ -178,6 +178,7 @@ labels <- paste(ukMap$area, ukMap$Education, sep = ":  ")
 # plot 
 leaflet(ukMap) %>%
   addTiles() %>%
+  setView(lng = -2.3, lat = 55.5, zoom = 5) %>% 
   addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1,
               label = labels, fillColor = ~ pal(Education)) %>%
   addLegend(pal = pal, values = ~ Education, opacity = 1.0)

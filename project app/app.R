@@ -112,9 +112,9 @@ ui <- navbarPage("Analysing Brexit",
               leave vote. Although not causational, we can see that some of the stereotypes 
               around the populaiton voting to leave Europe do have some grounding."),
             p("There is a strong negative correlation between education and 'vote leave' with a coeffcient
-              of -0.72, suggesting that the more educated an individual is the more likely it is 
-              that they would vote to remain. Being from a rural populaiton seems to also make one 
-              less likely to vote to leave, unlike an increase in age. So far this seems to 
+              of -0.72, suggesting that the more educated an individual is the more likely they are 
+              to vote to remain. Being from a rural populaiton makes it more likely
+              to vote to leave, as does an increase in age. So far this seems to 
               fulfill the stereotypes. Unemployment, however, which is more often associated
               with vote leave doesn't seem to have much correlation at all"),
         
@@ -183,7 +183,8 @@ ui <- navbarPage("Analysing Brexit",
                           
                           h4("About me"),
                           p(paste("My name is Paddy Adams and I'm a Sophmore student-athlete at Harvard studying 
-                            Integrative Biology. My email is padams@college.harvard.edu. You can access the source
+                            Integrative Biology with a potential secondary in Goverment. My email is padams@college.harvard.edu. 
+                            You can access the source
                             code for the project at my"), a(href = "https://github.com/padams27/gov1005-Project", "Github.")),
                           
 
@@ -213,19 +214,19 @@ server <- function(input, output, session) {
         
             if(input$demographic == "over50") {
                 x_value <- demographics$over50
-                x_lab <- "Population Over 50"
+                x_lab <- "Population Over 50 (%)"
                 demographic_title <- "Proportion of Population Over 50 and Percent Leave"
                 cor <- "Correlation coefficient: 0.38"
             } 
             else if(input$demographic == "under50") {
                 x_value <- demographics$under50
-                x_lab <- "Population Under 50"
+                x_lab <- "Population Under 50 (%)"
                 demographic_title <- "Proportion of Population Under 50 and Percent Leave"
                 cor <- "Correlation coefficient: -0.46"
             } 
             else if(input$demographic == "Education") {
                 x_value <- demographics$Education
-                x_lab <- "Higher Education"
+                x_lab <- "Higher Education (%)"
                 demographic_title <- "Proportion of Regional Population With A-Levels or Above and Percent Leave"
                 cor <- "Correlation coefficient: -0.72"
             }
@@ -237,7 +238,7 @@ server <- function(input, output, session) {
             }
             else{
                 x_value <- demographics$Unemployed
-                x_lab <- "Unemployment"
+                x_lab <- "Unemployment (%)"
                 demographic_title <- "Proportion of Population Unemployed and Percent Leave"
                 cor <- "Correlation coefficient: 0.087"
             }
@@ -247,13 +248,14 @@ server <- function(input, output, session) {
         ggplot(demographics, aes(x_value, pct_leave)) +
             geom_point(color = "lightblue") +
             geom_smooth(se = F, color = "darkgreen") +
-            scale_x_continuous(labels = function(x) paste0(x, "%")) +
+            scale_x_continuous(labels = function(x) paste0(x)) +
             scale_y_continuous(labels = function(y) paste0(y, "%")) +
             labs(y = "Percentage vote leave",
                  x = x_lab,
                  title = demographic_title,
                  subtitle = cor) +
-            theme_classic()
+            theme_classic() +
+            theme(text = element_text(size=18)) 
         
     })
 
